@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Mobile-specific optimizations */
+@layer components {
+  /* Improve tab visibility and interaction on mobile */
+  .mobile-tab-content {
+    @apply block w-full min-h-[300px] opacity-100 transition-opacity duration-200 ease-in-out;
+    will-change: opacity, transform;
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+  
+  /* Ensure smooth animations */
+  .mobile-tab-content:focus-visible {
+    @apply outline-none;
+  }
+  
+  /* Better mobile scrolling with momentum-based scrolling */
+  @media (max-width: 767px) {
+    .overflow-x-auto {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+    
+    /* Base tab content spacing */
+    .mobile-tab-content {
+      @apply pb-16;
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+    
+    /* Teams tab spacing fix */
+    [data-value="teams"] {
+      margin-top: -30px !important;
+    }
+    
+    [data-value="teams"] .flex-col {
+      @apply mt-0;
+    }
+    
+    [data-value="teams"] .card:first-child {
+      @apply mt-0;
+    }
+    
+    /* Comparison tab spacing fix */
+    [data-value="comparison"] {
+      margin-top: -20px !important;
+    }
+    
+    [data-value="comparison"] > div:first-child {
+      @apply mt-4;
+    }
+    
+    /* Members tab spacing fix */
+    [data-value="members"] {
+      margin-top: -30px !important;
+    }
+    
+    [data-value="members"] .card {
+      @apply mt-0;
+    }
+    
+    /* Analysis tab spacing fix */
+    [data-value="analysis"] {
+      margin-top: -30px !important;
+    }
+    
+    [data-value="analysis"] .space-y-6 {
+      @apply mt-0;
+    }
+    
+    /* Custom mobile-specific card padding */
+    .mobile-tab-content .card {
+      @apply mb-6;
+    }
+  }
+}

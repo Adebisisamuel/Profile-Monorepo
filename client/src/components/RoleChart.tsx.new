@@ -1,0 +1,287 @@
+import { ROLES, ROLE_COLORS, ROLE_LABELS } from "@shared/constants";
+import { RoleResults } from "@shared/types";
+import { useEffect, useRef } from "react";
+import Chart from "chart.js/auto";
+
+interface RoleChartProps {
+  results: RoleResults;
+  type: "bar" | "pie" | "radar";
+  height?: number;
+  width?: number;
+  showLegend?: boolean;
+  isTeam?: boolean;
+  comparisonData?: RoleResults;
+}
+
+export default function RoleChart({ 
+  results, 
+  type, 
+  height = 300, 
+  width = 300,
+  showLegend = false,
+  isTeam = false,
+  comparisonData
+}: RoleChartProps) {
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstance = useRef<Chart | null>(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+    
+    // Destroy previous chart instance if it exists
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+    
+    const ctx = chartRef.current.getContext('2d');
+    if (!ctx) return;
+
+    // Use these specific roles in this exact order for consistency
+    const roleKeys = [ROLES.APOSTLE, ROLES.PROPHET, ROLES.EVANGELIST, ROLES.HERDER, ROLES.TEACHER];
+    const labels = roleKeys.map(role => ROLE_LABELS[role]);
+    
+    // Get data in the same order as our keys
+    const data = roleKeys.map(role => {
+      // Convert to number and handle undefined/null values
+      return typeof results[role] === 'number' ? results[role] : 0;
+    });
+    
+    // Get comparison data if provided
+    const comparisonValues = comparisonData 
+      ? roleKeys.map(role => {
+          return typeof comparisonData[role] === 'number' ? comparisonData[role] : 0;
+        }) 
+      : [];
+    
+    // Get colors for each role (using our constants instead of chart-provided colors)
+    const backgroundColors = roleKeys.map(role => {
+      const color = ROLE_COLORS[role];
+      console.log(`Role ${role} color: ${color}`);
+      return type === 'pie' ? color : `${color}99`; // Add transparency for bar and radar
+    });
+    
+    // Calculate total for percentage display in tooltips
+    const total = data.reduce((sum, val) => sum + val, 0);
+    
+    // Define chart config based on chart type
+    if (type === 'bar') {
+      chartInstance.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: isTeam ? 'Team Score' : 'Jouw Score',
+              data,
+              backgroundColor: backgroundColors,
+              borderWidth: 0,
+              borderRadius: 4
+            },
+            ...(comparisonData ? [{
+              label: 'Vergelijking',
+              data: comparisonValues,
+              backgroundColor: 'rgba(180, 180, 180, 0.5)',
+              borderWidth: 0,
+              borderRadius: 4
+            }] : [])
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: showLegend,
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 10
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(tooltipItem) {
+                  const value = tooltipItem.raw as number;
+                  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                  return `${tooltipItem.label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                display: false
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    } else if (type === 'pie') {
+      chartInstance.current = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: backgroundColors,
+            borderWidth: 1,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: showLegend,
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 10
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(tooltipItem) {
+                  const value = tooltipItem.raw as number;
+                  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                  return `${tooltipItem.label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    } else if (type === 'radar') {
+      chartInstance.current = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: isTeam ? 'Team Profiel' : 'Jouw Profiel',
+              data,
+              backgroundColor: 'rgba(99, 102, 241, 0.2)',
+              borderColor: 'rgba(99, 102, 241, 0.8)',
+              borderWidth: 2,
+              pointBackgroundColor: backgroundColors,
+              pointRadius: 4
+            },
+            ...(comparisonData ? [{
+              label: 'Vergelijking',
+              data: comparisonValues,
+              backgroundColor: 'rgba(180, 180, 180, 0.2)',
+              borderColor: 'rgba(180, 180, 180, 0.8)',
+              borderWidth: 2,
+              pointBackgroundColor: 'rgba(180, 180, 180, 1)',
+              pointRadius: 3
+            }] : [])
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: showLegend,
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 10
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(tooltipItem) {
+                  const value = tooltipItem.raw as number;
+                  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                  return `${tooltipItem.label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          scales: {
+            r: {
+              beginAtZero: true,
+              ticks: {
+                display: false
+              },
+              pointLabels: {
+                font: {
+                  size: 10
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Clean up on unmount
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [results, type, height, width, showLegend, isTeam, comparisonData]);
+  
+  // Use these role keys in consistent order for the fallback display
+  const roleKeys = [ROLES.APOSTLE, ROLES.PROPHET, ROLES.EVANGELIST, ROLES.HERDER, ROLES.TEACHER];
+  
+  // Calculate total for percentages
+  const total = roleKeys.reduce((acc, role) => acc + (Number(results[role]) || 0), 0);
+  
+  // Calculate percentages for each role
+  const roleData = roleKeys.map(role => {
+    const score = Number(results[role]) || 0;
+    return {
+      role,
+      label: ROLE_LABELS[role],
+      score,
+      percentage: total > 0 ? Math.round((score / total) * 100) : 0,
+      color: ROLE_COLORS[role]
+    };
+  });
+  
+  // Sort by score descending for the fallback view
+  const sortedRoleData = [...roleData].sort((a, b) => b.score - a.score);
+
+  return (
+    <div style={{ height, width: width || '100%' }} className="flex flex-col">
+      <canvas ref={chartRef} style={{ height: '100%', width: '100%' }}></canvas>
+      {/* Fallback content in case Canvas doesn't render */}
+      {!chartInstance.current && (
+        <div className="text-center mt-4 text-sm text-gray-500">
+          <p>Laadt grafiek...</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 mx-auto max-w-xs text-left mt-2">
+            {sortedRoleData.map(({ role, label, percentage, color }) => (
+              <div key={role} className="flex items-center">
+                <div 
+                  className="w-3 h-3 rounded-full mr-1" 
+                  style={{ backgroundColor: color }}
+                ></div>
+                <span>{label}: {percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,12 @@
+# Bedieningen Profiel - Current Database Configuration
+
+# PostgreSQL Connection Settings
+DATABASE_URL=postgresql://neondb_owner:npg_1smPQVcDyoj0@ep-tiny-scene-a4m1ntq1.us-east-1.aws.neon.tech/neondb?sslmode=require
+PGHOST=ep-tiny-scene-a4m1ntq1.us-east-1.aws.neon.tech
+PGPORT=5432
+PGUSER=neondb_owner
+PGDATABASE=neondb
+
+# NOTE: To protect your password, the PGPASSWORD is not exported to this file.
+# Store this information securely and update your .env file with these values.
+# To access this information after downloading the project.
