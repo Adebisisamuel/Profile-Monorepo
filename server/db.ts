@@ -224,7 +224,7 @@ export const db = drizzle(sql, { schema }); // ✅ Use this for most of your DB 
 // --- PG Pool (used for sessions, transactions, raw queries only) ---
 const poolConfig = {
   connectionString: process.env.DATABASE_URL,
-  max: 1, // ✅ Keep this very low for Neon
+  max: 20, // ✅ Keep this very low for Neon
   idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 5000,
   application_name: "bedieningen-profiel",
